@@ -4,6 +4,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.log4j.Logger;
 
 import java.io.IOException;
 
@@ -24,7 +25,7 @@ public class HbaseAPI {
     private static Configuration conf = null;
     private static Connection connection = null;
     private static Admin admin = null;
-
+    private static final Logger logger = Logger.getLogger(HbaseAPI.class);
     //初始化配置
     static {
         //获取配置文件
@@ -179,7 +180,27 @@ public class HbaseAPI {
 
         close();
     }
-    
+
+    //DML 3.删除数据
+    public static void deleteData(String tableName , String rowKey , String columnFamily , String columnName) throws IOException {
+
+        //table负责DML操作
+        TableName tn = TableName.valueOf(tableName);
+        Table table = connection.getTable(tn);
+        Delete delete = new Delete(Bytes.toBytes(rowKey));
+
+        //删除指定列族全部数据
+        //delete.addFamily(Bytes.toBytes(columnFamily));
+
+        //删除指定列的数据
+        //delete.addColumns(Bytes.toBytes(columnFamily) , Bytes.toBytes(columnName));
+
+        //删除一个版本数据
+        delete.addColumn(Bytes.toBytes(columnFamily) , Bytes.toBytes(columnName));
+        table.delete(delete);
+    }
+
+
     public static void main(String[] args) throws IOException {
         //DDL
         //1.创建命名空间
@@ -203,5 +224,8 @@ public class HbaseAPI {
         //getData("hellohbase" , "1001");
         //getData("hellohbase" , "1001" , "info1" , "name");
         scanData("hellohbase");
+
+        //3.删除数据
+        //deleteData("hellohbase","1006" ,"info1" ,"name");
     }
 }
